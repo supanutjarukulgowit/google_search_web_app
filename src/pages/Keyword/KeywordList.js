@@ -17,23 +17,10 @@ import Link from '@mui/material/Link';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-// import { mainListItems, secondaryListItems } from './listItems';
-// import Chart from './Chart';
-// import Deposits from './Deposits';
-// import Orders from './Orders';
-
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
 
 const drawerWidth = 240;
 
@@ -84,10 +71,45 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 const mdTheme = createTheme();
 
 const KeywordList = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
   const [open, setOpen] = React.useState(true);
+  const {state} = useLocation();
+  const mySwal = withReactContent(Swal)
+  const navigate = useNavigate()
+  let userId = ""
+  if (state) {
+    userId = state.userId? state.userId:"";
+  }
   const toggleDrawer = () => {
     setOpen(!open);
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem('g_search_token')
+    if(token === "" || userId === ""){
+      mySwal.fire({
+        icon: 'error',
+        title: 'Invalid Token',          
+      }).then(() => {
+        navigate('/')
+      })
+    }else{
+      var myHeaders = new Headers();
+      myHeaders.append("user_id", userId);
+      myHeaders.append("Authorization", "Bearer "+token);
+      
+      var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+      };
+      
+      fetch("http://localhost:8081/api/keywords/list", requestOptions)
+        .then(response => response.json())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
+    }
+  }, [])
 
   return (
     <ThemeProvider theme={mdTheme}>
@@ -195,7 +217,6 @@ const KeywordList = () => {
                 </Paper>
               </Grid>
             </Grid>
-            <Copyright sx={{ pt: 4 }} />
           </Container>
         </Box>
       </Box>

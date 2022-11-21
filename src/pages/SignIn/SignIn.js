@@ -13,53 +13,61 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from "axios";
-
-
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
-
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 const theme = createTheme();
 
 
-const SignInSide = () => {
-  const [post, setPost] = React.useState(null);
 
+const SignInSide = () => {
+  const navigate = useNavigate()
+  const [inputs, setInputs] = React.useState({})
+  const mySwal = withReactContent(Swal)
+  const handleChange = (event) => {
+    const name = event.target.name
+    const value = event.target.value
+    setInputs(values => ({...values, [name]:value}))
+  }
   const handleSubmit = (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    // console.log({
-    //   email: data.get('username'),
-    //   password: data.get('password'),
-    // });
     axios
     .post('http://localhost:8080/api/auth/signIn', {
-      username: data.get('username'),
-      password: data.get('password')
+      username: inputs.username,
+      password: inputs.password
     })
-    .then((response) => {
-      // console.log(response)
-      if(response.error){
-        console.log(response.error)
-      }else{
-        setPost(response.data);
-      }
-      
+    .then(response => {
+      localStorage.setItem('g_search_token', response.data.data.token)
+      navigate('/keywords', {
+        state: {
+          userId: response.data.data.user_id,
+        }
+      })
     })
     .catch(error => {
-        console.log(error);
-        console.log(error.response.data);
+      if(error.response){
+        mySwal.fire({
+          icon: 'error',
+          title: error.response.data.error.code,
+          text: error.response.data.error.messageToUser,
+        })
+      }else if(error.request){
+        console.log(error.request);
+      }else {
+        console.log('Error', error.message);
+        mySwal.fire({
+          icon: 'error',
+          title: 'ERR_500',
+          text: error.message,
+        })
+      }
     });
   };
+
+  useEffect(() => {
+    localStorage.removeItem('g_search_token');
+  }, [])
 
   return (
     <ThemeProvider theme={theme}>
@@ -105,6 +113,7 @@ const SignInSide = () => {
                 name="username"
                 autoComplete="username"
                 autoFocus
+                onChange={handleChange}
               />
               <TextField
                 margin="normal"
@@ -114,6 +123,7 @@ const SignInSide = () => {
                 label="Password"
                 type="password"
                 id="password"
+                onChange={handleChange}
                 autoComplete="current-password"
               />
               <FormControlLabel
@@ -129,18 +139,12 @@ const SignInSide = () => {
                 Sign In
               </Button>
               <Grid container>
-                <Grid item xs>
-                  <Link href="#" variant="body2">
-                    Forgot password?
-                  </Link>
-                </Grid>
                 <Grid item>
-                  <Link href="#" variant="body2">
+                  <Link href="/signUp" variant="body2">
                     {"Don't have an account? Sign Up"}
                   </Link>
                 </Grid>
               </Grid>
-              <Copyright sx={{ mt: 5 }} />
             </Box>
           </Box>
         </Grid>

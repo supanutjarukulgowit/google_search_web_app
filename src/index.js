@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import {SignIn, Keyword} from './pages';
+import {SignIn, Keyword, SignUp} from './pages';
 import {
   createBrowserRouter,
   RouterProvider,
@@ -20,6 +20,10 @@ const router = createBrowserRouter([
   {
     path: "/keywords",
     element: <Keyword/>,
+  },
+  {
+    path: "/signUp",
+    element: <SignUp/>,
   },
 ]);
 
