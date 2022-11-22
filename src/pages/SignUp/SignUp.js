@@ -59,8 +59,9 @@ function SignUp() {
         })
       })
       .catch((error) => {
-        const statusCodeResponse = error.response.status;
-        const bodyResponse = error.response.data;
+        let errResponse = error.response? error.response:{};
+        let statusCodeResponse = errResponse.status? errResponse.status:0;
+        let bodyResponse = errResponse.data ? errResponse.data:0;
         if(statusCodeResponse === 400){
           mySwal.fire({
             icon: 'error',

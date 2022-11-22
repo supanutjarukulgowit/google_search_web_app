@@ -30,39 +30,93 @@ const SignInSide = () => {
     const value = event.target.value
     setInputs(values => ({...values, [name]:value}))
   }
+  const api = axios.create({
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    timeout: 15000
+  })
   const handleSubmit = (event) => {
     event.preventDefault();
-    axios
-    .post('http://localhost:8080/api/auth/signIn', {
+    let request = {
       username: inputs.username,
-      password: inputs.password
-    })
-    .then(response => {
-      localStorage.setItem('g_search_token', response.data.data.token)
-      navigate('/keywords', {
-        state: {
-          userId: response.data.data.user_id,
-        }
+      password: inputs.password,
+    }
+    let options = {
+      method: 'POST',
+      url: 'http://localhost:8080/api/auth/signIn',
+      data: request
+    }
+    api
+      .request(options)
+      .then(response => {
+        localStorage.setItem('g_search_token', response.data.data.token)
+        navigate('/keywords', {
+          state: {
+            userId: response.data.data.user_id,
+          }
+        })
       })
-    })
-    .catch(error => {
-      if(error.response){
-        mySwal.fire({
-          icon: 'error',
-          title: error.response.data.error.code,
-          text: error.response.data.error.messageToUser,
-        })
-      }else if(error.request){
-        console.log(error.request);
-      }else {
-        console.log('Error', error.message);
-        mySwal.fire({
-          icon: 'error',
-          title: 'ERR_500',
-          text: error.message,
-        })
-      }
-    });
+      .catch(error => {
+        let errResponse = error.response? error.response:{};
+        let statusCodeResponse = errResponse.status? errResponse.status:0;
+        let bodyResponse = errResponse.data ? errResponse.data:0;
+        console.log(statusCodeResponse);
+        if(statusCodeResponse === 401){
+          console.log(bodyResponse);
+          if(bodyResponse === 0){
+            mySwal.fire({
+              icon: 'error',
+              title: 'ERROR_500',
+              text: 'server error',
+            })
+          }else{
+            mySwal.fire({
+              icon: 'error',
+              title: bodyResponse.error.code,
+              text: bodyResponse.error.messageToUser,
+            })
+          }
+        }else{
+          mySwal.fire({
+            icon: 'error',
+            title: 'ERROR_500',
+            text: 'server error',
+          })
+        }
+      });
+    // axios
+    // .post('http://localhost:8080/api/auth/signIn', {
+    //   username: inputs.username,
+    //   password: inputs.password
+    // })
+    // .then(response => {
+    //   localStorage.setItem('g_search_token', response.data.data.token)
+    //   navigate('/keywords', {
+    //     state: {
+    //       userId: response.data.data.user_id,
+    //     }
+    //   })
+    // })
+    // .catch(error => {
+    //   if(error.response){
+    //     mySwal.fire({
+    //       icon: 'error',
+    //       title: error.response.data.error.code,
+    //       text: error.response.data.error.messageToUser,
+    //     })
+    //   }else if(error.request){
+    //     console.log(error.request);
+    //   }else {
+    //     console.log('Error', error.message);
+    //     mySwal.fire({
+    //       icon: 'error',
+    //       title: 'ERR_500',
+    //       text: error.message,
+    //     })
+    //   }
+    // });
   };
 
   useEffect(() => {
