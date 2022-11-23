@@ -7,9 +7,10 @@ import
   Button,  
   Paper,
   Stack,
+  Skeleton,
+  CircularProgress,
 } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
-import SaveIcon from '@mui/icons-material/Save';
 import DownloadingIcon from '@mui/icons-material/Downloading';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
@@ -21,16 +22,71 @@ import axios from "axios";
 import CommonUtils from '../../utils/common';
 import _ from 'lodash';
 import fileDownload from 'js-file-download';
-
-const KeywordList = () => {
+import UploadTable from './UploadTable';
+const KeywordList = () => {  
   const [keywords, setKeywords] = useState([]);
   const [loadTemplate, setLoadTemplate] = useState(false);
+  const [loadKeyword, setLoadKeyword] = useState(false);
+  const [uploadLoding, setUploadLoding] = useState(false);
+  const [file, setFile] = useState(null);
   const {state} = useLocation();
   const mySwal = withReactContent(Swal)
+  const handleOpen = () => setOpen(true);
+  const [open, setOpen] = useState(false);
+
   const navigate = useNavigate()
   let userId = ""
   if (state) {
     userId = state.userId? state.userId:"";
+  }
+  const getKeyword = () => {
+    setLoadKeyword(true)
+      const api = axios.create({
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization' : "Bearer "+ token,
+          'user_id' : userId
+        },
+        timeout: 15000
+      })
+      let options = {
+        method: 'GET',
+        url: 'http://localhost:8081/api/keywords/list',
+      }
+      api
+      .request(options)
+      .then(response => {
+        let result = _.get(response.data, 'data', [])
+        setKeywords(result)
+        setLoadKeyword(false)
+      })
+      .catch(error => {
+        let errResponse = error.response? error.response:{};
+        let statusCodeResponse = errResponse.status? errResponse.status:0;
+        let bodyResponse = errResponse.data ? errResponse.data:0;
+        if(statusCodeResponse !== 400){
+          if(bodyResponse === 0){
+            mySwal.fire({
+              icon: 'error',
+              title: 'ERROR_500',
+              text: 'server error',
+            })
+          }else{
+            mySwal.fire({
+              icon: 'error',
+              title: bodyResponse.error.code,
+              text: bodyResponse.error.messageToUser,
+            })
+          }
+        }else{
+          mySwal.fire({
+            icon: 'error',
+            title: 'ERROR_500',
+            text: 'server error',
+          })
+        }
+      });
   }
   useEffect(() => {
     const token = localStorage.getItem('g_search_token')
@@ -42,20 +98,7 @@ const KeywordList = () => {
         navigate('/')
       })
     }else{
-      var myHeaders = new Headers();
-      myHeaders.append("user_id", userId);
-      myHeaders.append("Authorization", "Bearer "+token);
-      
-      var requestOptions = {
-        method: 'GET',
-        headers: myHeaders,
-        redirect: 'follow'
-      };
-      
-      fetch("http://localhost:8081/api/keywords/list", requestOptions)
-        .then(response => response.json())
-        .then(result => setKeywords(result.data))
-        .catch(error => console.log('error', error));
+      getKeyword()
     }
   }, [])
 
@@ -86,13 +129,10 @@ const KeywordList = () => {
         })
         .catch(error => {
           setLoadTemplate(false)
-          console.log(error)
           let errResponse = error.response? error.response:{};
           let statusCodeResponse = errResponse.status? errResponse.status:0;
           let bodyResponse = errResponse.data ? errResponse.data:0;
-          console.log(statusCodeResponse);
           if(statusCodeResponse !== 400){
-            console.log(bodyResponse);
             if(bodyResponse === 0){
               mySwal.fire({
                 icon: 'error',
@@ -114,7 +154,76 @@ const KeywordList = () => {
             })
           }
         });
-      
+  }
+
+  const onUploadFile = (e) => {
+    setFile(null)
+    if(e.target.files[0].type !== "text/csv"){
+      mySwal.fire({
+        icon: 'error',
+        title: 'invalid file type',
+        text: 'only csv file is available',
+      })
+    }else{
+      setFile(e.target.files[0])
+    }
+  }
+  const deleteFile = () => {
+    setFile(null)
+  }
+  const confirmUpload = () => {
+    setFile(null)
+    setUploadLoding(true)
+    var bodyFormData = new FormData();
+    bodyFormData.append('user_id', userId);
+    bodyFormData.append('files', file);
+    let options = {
+      method: 'POST',
+      url: 'http://localhost:8081/api/keywords/upload/file',
+      data: bodyFormData
+    }
+    const api = axios.create({
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization' : "Bearer "+ token
+      },
+      timeout: 60000
+    })
+    api
+      .request(options)
+      .then(response => {
+        setUploadLoding(false)
+        console.log(response);
+      }).then(() => {
+        getKeyword()
+      })
+      .catch(error => {
+        setUploadLoding(false)
+        let errResponse = error.response? error.response:{};
+        let statusCodeResponse = errResponse.status? errResponse.status:0;
+        let bodyResponse = errResponse.data ? errResponse.data:0;
+        if(statusCodeResponse === 401){
+          if(bodyResponse === 0){
+            mySwal.fire({
+              icon: 'error',
+              title: 'ERROR_500',
+              text: 'server error',
+            })
+          }else{
+            mySwal.fire({
+              icon: 'error',
+              title: bodyResponse.error.code,
+              text: bodyResponse.error.messageToUser,
+            })
+          }
+        }else{
+          mySwal.fire({
+            icon: 'error',
+            title: 'ERROR_500',
+            text: 'server error',
+          })
+        }
+      });
   }
 
   return (
@@ -131,27 +240,59 @@ const KeywordList = () => {
                 </Box> 
                 <Box>
                 <Stack direction="row" spacing={2}>
-                <LoadingButton
-                  loading={loadTemplate}
-                  loadingPosition="start"
-                  startIcon={<DownloadingIcon />}
-                  variant="outlined"
-                  onClick={downloadTemplate}
-                >
-                  Download Template
-                </LoadingButton>
-                  <Button variant="contained" component="label">
-                    Upload
-                    <input hidden accept="image/*" multiple type="file" />
-                </Button>
+                  <LoadingButton
+                    color="secondary"
+                    loading={loadTemplate}
+                    loadingPosition="start"
+                    startIcon={<DownloadingIcon />}
+                    variant="outlined"
+                    onClick={downloadTemplate}
+                    disabled={!downloadTemplate}
+                  >
+                    Download Template
+                  </LoadingButton>
+                  
+                    <Button loading disabled={uploadLoding} onClick={handleOpen} variant="contained" component="label">
+                      Upload
+                      <input hidden type="file" onChange={onUploadFile}/>
+                  </Button>
+                  {
+                    uploadLoding? 
+                      <CircularProgress />
+                    :
+                      null
+                  }
+                  
                 </Stack>
                 </Box>
               </Box>
-              <KeywordTable
-                {...{
-                  data:keywords,
-                }}
-              />
+              
+              {
+                  file ? 
+                  <Box sx={{flexGrow : 1, paddingBottom:2}}>
+                    <UploadTable
+                    {
+                      ...{
+                        data:file,
+                        deleteFile,
+                        confirmUpload
+                      }
+                    }
+                    />
+                  </Box>
+                    :
+                  null
+              }
+              { 
+              loadKeyword ? 
+              <Skeleton variant="rounded" height={190} /> 
+              : 
+                <KeywordTable
+                {
+                  ...{data:keywords,}
+                }
+                />
+              }
             </Paper>
           </Container>
       </React.Fragment>
