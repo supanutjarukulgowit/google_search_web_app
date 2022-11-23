@@ -1,6 +1,7 @@
 import {SignIn, Keyword, SignUp} from '../pages';
 import WithNavbar from './WithNavbar';
 import WithOutSignInNavbar from './WithOutNavbar' 
+import PageNoutFound from './PageNoutFound';
 import {
   Route,
   Routes,
@@ -15,6 +16,7 @@ function App() {
           <Route path='/' element={<SignIn/>}/>
           <Route path='/signIn' element={<SignIn/>}/>
           <Route path='/signUp' element={<SignUp/>}/>
+          <Route path='*' element={<PageNoutFound/>}/>
         </Route>
           <Route element={<WithNavbar />}>
             <Route path='/keywords' element={<Keyword/>}/>
