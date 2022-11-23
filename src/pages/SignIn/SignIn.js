@@ -86,37 +86,6 @@ const SignInSide = () => {
           })
         }
       });
-    // axios
-    // .post('http://localhost:8080/api/auth/signIn', {
-    //   username: inputs.username,
-    //   password: inputs.password
-    // })
-    // .then(response => {
-    //   localStorage.setItem('g_search_token', response.data.data.token)
-    //   navigate('/keywords', {
-    //     state: {
-    //       userId: response.data.data.user_id,
-    //     }
-    //   })
-    // })
-    // .catch(error => {
-    //   if(error.response){
-    //     mySwal.fire({
-    //       icon: 'error',
-    //       title: error.response.data.error.code,
-    //       text: error.response.data.error.messageToUser,
-    //     })
-    //   }else if(error.request){
-    //     console.log(error.request);
-    //   }else {
-    //     console.log('Error', error.message);
-    //     mySwal.fire({
-    //       icon: 'error',
-    //       title: 'ERR_500',
-    //       text: error.message,
-    //     })
-    //   }
-    // });
   };
 
   useEffect(() => {
@@ -179,10 +148,6 @@ const SignInSide = () => {
                 id="password"
                 onChange={handleChange}
                 autoComplete="current-password"
-              />
-              <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
-                label="Remember me"
               />
               <Button
                 type="submit"

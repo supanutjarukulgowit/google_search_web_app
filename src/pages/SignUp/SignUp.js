@@ -16,7 +16,7 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useEffect } from 'react';
 
 function SignUp() {
   const mySwal = withReactContent(Swal)
@@ -83,6 +83,9 @@ function SignUp() {
         }
       })
   }
+  useEffect(() => {
+    localStorage.removeItem('g_search_token');
+  }, [])
   return (
     <div>
     <Container component="main" maxWidth="xs">
