@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -8,6 +7,15 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import { PropTypes } from 'prop-types';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+import 
+{ 
+  Button,  
+  Paper,
+} from '@mui/material';
+import { useState } from 'react';
 
 const columns = [
   { name: 'keyword', label: 'Keywords', minWidth: 150 },
@@ -15,32 +23,15 @@ const columns = [
   { name: 'link',label: 'Total Links',minWidth: 100,},
   { name: 'search_results',label: 'Total Results',minWidth: 100,},
   { name: 'time_taken',label: 'Time Taken',minWidth: 100,},
-//   {id: 'htmlCode',label: 'htmlCode',minWidth: 100,},
-  {id: 'cache_link',label: 'cache',minWidth: 100,},
-//   {
-//     id: 'size',
-//     label: 'Size\u00a0(km\u00b2)',
-//     minWidth: 170,
-//     align: 'right',
-//     format: (value) => value.toLocaleString('en-US'),
-//   },
-//   {
-//     id: 'density',
-//     label: 'Density',
-//     minWidth: 170,
-//     align: 'right',
-//     format: (value) => value.toFixed(2),
-//   },
+  { name: 'raw_html',label: 'Raw Html',minWidth: 100,},
+  { name: 'cache_link',label: 'cache',minWidth: 100,},
 ];
 
-function createData(name, code, population, size) {
-  const density = population / size;
-  return { name, code, population, size, density };
-}
-
 const KeywordTable = ({ data }) => {
+  const mySwal = withReactContent(Swal)
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [rawHtml, setRawHtml] = useState("")
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -49,6 +40,14 @@ const KeywordTable = ({ data }) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+
+  const copyHtml = (rawHtml) => {
+    setRawHtml(rawHtml)
+    mySwal.fire({
+      icon: 'success',
+      title: 'copy raw html to your clib board',          
+    })
+  }
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -77,13 +76,23 @@ const KeywordTable = ({ data }) => {
                   <TableRow hover role="checkbox" tabIndex={-1} key={index}>
                     {columns.map((column) => {
                       const value = row[column.name];
-                      return (
-                        <TableCell key={column.name + index} align={column.align}>
-                          {column.format && typeof value === 'number'
-                            ? column.format(value)
-                            : value}
-                        </TableCell>
-                      );
+                      if(column.name=== 'raw_html'){
+                        return (
+                          <TableCell key={column.name + index} align={column.align}>
+                            <CopyToClipboard text={rawHtml}>
+                            <Button onClick={ () => copyHtml(value)} variant="text" component="label">
+                              Copy
+                            </Button>
+                            </CopyToClipboard>
+                          </TableCell>
+                        );
+                      }else{
+                        return (
+                          <TableCell key={column.name + index} align={column.align}>
+                            {value}
+                          </TableCell>
+                        );
+                      }
                     })}
                   </TableRow>
                 );

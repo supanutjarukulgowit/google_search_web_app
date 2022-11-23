@@ -149,10 +149,6 @@ const SignInSide = () => {
                 onChange={handleChange}
                 autoComplete="current-password"
               />
-              <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
-                label="Remember me"
-              />
               <Button
                 type="submit"
                 fullWidth

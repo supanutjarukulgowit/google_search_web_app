@@ -31,7 +31,10 @@ const KeywordList = () => {
   const [file, setFile] = useState(null);
   const {state} = useLocation();
   const mySwal = withReactContent(Swal)
-  const handleOpen = () => setOpen(true);
+  const handleOpen = () => {
+    setFile(null)
+    setOpen(true)
+  };
   const [open, setOpen] = useState(false);
 
   const navigate = useNavigate()
@@ -90,7 +93,7 @@ const KeywordList = () => {
   }
   useEffect(() => {
     const token = localStorage.getItem('g_search_token')
-    if(token === "" || userId === ""){
+    if(!token || token === "" || !userId || userId === ""){
       mySwal.fire({
         icon: 'error',
         title: 'Invalid Token',          
@@ -202,7 +205,7 @@ const KeywordList = () => {
         let errResponse = error.response? error.response:{};
         let statusCodeResponse = errResponse.status? errResponse.status:0;
         let bodyResponse = errResponse.data ? errResponse.data:0;
-        if(statusCodeResponse === 401){
+        if(statusCodeResponse === 400 || statusCodeResponse === 401){
           if(bodyResponse === 0){
             mySwal.fire({
               icon: 'error',
@@ -252,7 +255,7 @@ const KeywordList = () => {
                     Download Template
                   </LoadingButton>
                   
-                    <Button loading disabled={uploadLoding} onClick={handleOpen} variant="contained" component="label">
+                    <Button disabled={uploadLoding} onClick={handleOpen} variant="contained" component="label">
                       Upload
                       <input hidden type="file" onChange={onUploadFile}/>
                   </Button>

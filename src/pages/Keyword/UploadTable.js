@@ -9,17 +9,9 @@ import TableRow from '@mui/material/TableRow';
 import { PropTypes } from 'prop-types';
 import 
 { 
-  CssBaseline, 
-  Box, 
-  Container, 
-  Typography, 
   Button,  
   Paper,
-  Stack,
-  Skeleton,
-  Modal,
 } from '@mui/material';
-
 const UploadTable = ({ data, deleteFile, confirmUpload }) => {
   return (
     data ? 
