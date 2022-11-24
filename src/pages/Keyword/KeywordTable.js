@@ -22,9 +22,10 @@ const columns = [
   { name: 'ads_words', label: 'Total Ads', minWidth: 100 },
   { name: 'link',label: 'Total Links',minWidth: 100,},
   { name: 'search_results',label: 'Total Results',minWidth: 100,},
-  { name: 'time_taken',label: 'Time Taken',minWidth: 100,},
+  { name: 'time_taken',label: 'Time Taken(s)',minWidth: 100,},
   { name: 'raw_html',label: 'Raw Html',minWidth: 100,},
   { name: 'cache_link',label: 'cache',minWidth: 100,},
+  { name: 'created_date',label: 'created date',minWidth: 120,},
 ];
 
 const KeywordTable = ({ data }) => {

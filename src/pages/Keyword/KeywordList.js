@@ -9,6 +9,8 @@ import
   Stack,
   Skeleton,
   CircularProgress,
+  Autocomplete,
+  TextField
 } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import DownloadingIcon from '@mui/icons-material/Downloading';
@@ -36,13 +38,25 @@ const KeywordList = () => {
     setOpen(true)
   };
   const [open, setOpen] = useState(false);
-
+  const [search, setSearch] = useState("");
   const navigate = useNavigate()
   let userId = ""
   if (state) {
     userId = state.userId? state.userId:"";
   }
-  const getKeyword = () => {
+  const handleInput  = (e) => {
+    setSearch(e.target.value)
+  }
+  const handleSearch = (e) => {
+    if(e.keyCode == 13){
+      getKeyword(search)
+   }
+  }
+  const handleRefresh = () => {
+    getKeyword("")
+    setSearch("")
+  }
+  const getKeyword = (keyword) => {
     setLoadKeyword(true)
       const api = axios.create({
         headers: {
@@ -53,9 +67,24 @@ const KeywordList = () => {
         },
         timeout: 15000
       })
+      let med = ""
+      let url = ""
+      if(keyword) {
+        med = 'POST'
+        url = 'http://localhost:8081/api/keywords/search'
+      }else{
+        med = 'GET'
+        url = 'http://localhost:8081/api/keywords/list'
+      }
+      let request = {
+        keyword: keyword,
+      }
       let options = {
-        method: 'GET',
-        url: 'http://localhost:8081/api/keywords/list',
+        method: med,
+        url: url,
+      }
+      if(keyword){
+        options.data = request
       }
       api
       .request(options)
@@ -65,6 +94,7 @@ const KeywordList = () => {
         setLoadKeyword(false)
       })
       .catch(error => {
+        setLoadKeyword(false)
         let errResponse = error.response? error.response:{};
         let statusCodeResponse = errResponse.status? errResponse.status:0;
         let bodyResponse = errResponse.data ? errResponse.data:0;
@@ -101,7 +131,7 @@ const KeywordList = () => {
         navigate('/')
       })
     }else{
-      getKeyword()
+      getKeyword("")
     }
   }, [])
 
@@ -198,7 +228,7 @@ const KeywordList = () => {
         setUploadLoding(false)
         console.log(response);
       }).then(() => {
-        getKeyword()
+        getKeyword("")
       })
       .catch(error => {
         setUploadLoding(false)
@@ -243,6 +273,9 @@ const KeywordList = () => {
                 </Box> 
                 <Box>
                 <Stack direction="row" spacing={2}>
+                <Button onClick={handleRefresh} color="warning" variant="contained" component="label">
+                      Refresh
+                  </Button>
                   <LoadingButton
                     color="secondary"
                     loading={loadTemplate}
@@ -267,6 +300,14 @@ const KeywordList = () => {
                   }
                   
                 </Stack>
+                <TextField
+                        label="Search"
+                        sx={{marginTop:1}}
+                        fullWidth
+                        onChange={handleInput}
+                        onKeyDown={handleSearch}
+                        value={search}
+                />
                 </Box>
               </Box>
               
