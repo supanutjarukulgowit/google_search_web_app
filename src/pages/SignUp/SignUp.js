@@ -17,6 +17,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { useEffect } from 'react';
+import Fetch from '../../manager/service';
 
 function SignUp() {
   const mySwal = withReactContent(Swal)
@@ -48,40 +49,14 @@ function SignUp() {
       url: 'http://localhost:8080/api/auth/signUp',
       data: request
     }
-      api
-      .request(options)
-      .then(() => {
-        mySwal.fire({
-          icon: 'success',
-          title: 'Sign up success',          
-        }).then(() => {
-          navigate('/')
-        })
+    Fetch.customFetch(options).then(() => {
+      mySwal.fire({
+        icon: 'success',
+        title: 'Sign up success',          
+      }).then(() => {
+        navigate('/')
       })
-      .catch((error) => {
-        let errResponse = error.response? error.response:{};
-        let statusCodeResponse = errResponse.status? errResponse.status:0;
-        let bodyResponse = errResponse.data ? errResponse.data:0;
-        if(statusCodeResponse === 400){
-          mySwal.fire({
-            icon: 'error',
-            title: bodyResponse.error.code,
-            text: bodyResponse.error.messageToUser,
-          })
-        }else if(statusCodeResponse === 404){
-          mySwal.fire({
-            icon: 'error',
-            title: 'ERROR_404',
-            text: 'page not found',
-          })
-        }else{
-          mySwal.fire({
-            icon: 'error',
-            title: 'ERROR_500',
-            text: 'server error',
-          })
-        }
-      })
+    })
   }
   useEffect(() => {
     localStorage.removeItem('g_search_token');

@@ -3,8 +3,6 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
@@ -12,31 +10,21 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import axios from "axios";
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import Fetch from '../../manager/service';
 const theme = createTheme();
 
 
 
 const SignInSide = () => {
-  const navigate = useNavigate()
   const [inputs, setInputs] = React.useState({})
-  const mySwal = withReactContent(Swal)
   const handleChange = (event) => {
     const name = event.target.name
     const value = event.target.value
     setInputs(values => ({...values, [name]:value}))
   }
-  const api = axios.create({
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    timeout: 15000
-  })
+  const navigate = useNavigate()
   const handleSubmit = (event) => {
     event.preventDefault();
     let request = {
@@ -48,44 +36,14 @@ const SignInSide = () => {
       url: 'http://localhost:8080/api/auth/signIn',
       data: request
     }
-    api
-      .request(options)
-      .then(response => {
-        localStorage.setItem('g_search_token', response.data.data.token)
-        navigate('/keywords', {
-          state: {
-            userId: response.data.data.user_id,
-          }
-        })
-      })
-      .catch(error => {
-        let errResponse = error.response? error.response:{};
-        let statusCodeResponse = errResponse.status? errResponse.status:0;
-        let bodyResponse = errResponse.data ? errResponse.data:0;
-        console.log(statusCodeResponse);
-        if(statusCodeResponse === 401){
-          console.log(bodyResponse);
-          if(bodyResponse === 0){
-            mySwal.fire({
-              icon: 'error',
-              title: 'ERROR_500',
-              text: 'server error',
-            })
-          }else{
-            mySwal.fire({
-              icon: 'error',
-              title: bodyResponse.error.code,
-              text: bodyResponse.error.messageToUser,
-            })
-          }
-        }else{
-          mySwal.fire({
-            icon: 'error',
-            title: 'ERROR_500',
-            text: 'server error',
-          })
+    Fetch.customFetch(options).then((result) => {
+      navigate('/keywords', {
+        state: {
+            userId: result.response.user_id,
         }
-      });
+      })
+      localStorage.setItem('g_search_token', result.response.token)
+    })
   };
 
   useEffect(() => {

@@ -25,6 +25,7 @@ import CommonUtils from '../../utils/common';
 import _ from 'lodash';
 import fileDownload from 'js-file-download';
 import UploadTable from './UploadTable';
+import Fetch from '../../manager/service';
 const KeywordList = () => {  
   const [keywords, setKeywords] = useState([]);
   const [loadTemplate, setLoadTemplate] = useState(false);
@@ -58,15 +59,6 @@ const KeywordList = () => {
   }
   const getKeyword = (keyword) => {
     setLoadKeyword(true)
-      const api = axios.create({
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization' : "Bearer "+ token,
-          'user_id' : userId
-        },
-        timeout: 15000
-      })
       let med = ""
       let url = ""
       if(keyword) {
@@ -80,46 +72,22 @@ const KeywordList = () => {
         keyword: keyword,
       }
       let options = {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization' : "Bearer "+ token,
+          'user_id' : userId
+        },
         method: med,
-        url: url,
+        url
       }
       if(keyword){
         options.data = request
       }
-      api
-      .request(options)
-      .then(response => {
-        let result = _.get(response.data, 'data', [])
-        setKeywords(result)
+    Fetch.customFetch(options).then((result) => {
+        setKeywords(result.response)
         setLoadKeyword(false)
-      })
-      .catch(error => {
-        setLoadKeyword(false)
-        let errResponse = error.response? error.response:{};
-        let statusCodeResponse = errResponse.status? errResponse.status:0;
-        let bodyResponse = errResponse.data ? errResponse.data:0;
-        if(statusCodeResponse !== 400){
-          if(bodyResponse === 0){
-            mySwal.fire({
-              icon: 'error',
-              title: 'ERROR_500',
-              text: 'server error',
-            })
-          }else{
-            mySwal.fire({
-              icon: 'error',
-              title: bodyResponse.error.code,
-              text: bodyResponse.error.messageToUser,
-            })
-          }
-        }else{
-          mySwal.fire({
-            icon: 'error',
-            title: 'ERROR_500',
-            text: 'server error',
-          })
-        }
-      });
+    })
   }
   useEffect(() => {
     const token = localStorage.getItem('g_search_token')
